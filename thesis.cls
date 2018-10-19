@@ -379,7 +379,7 @@ $\:\overline{~~~~ \mbox{\rule{0in}{0.16in}\small ~\hspace{3.5in} Date }}\:$ \\
 \def\dedication{
     \newpage
     \dsp
-    \chapter*{Dedication\@mkboth{DEDICATION}{DEDICATION}}
+    \chapter*{\@mkboth{}{}}
     \fmfont}
 \def\endacknowledgment{\par\vfil\null}
 

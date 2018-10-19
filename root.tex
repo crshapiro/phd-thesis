@@ -33,6 +33,8 @@
 \usepackage{fancyhdr}    % Use nice looking headers along with the required footer page numbers   
 %\usepackage[hypertex]{hyperref}
 
+\DeclareMathOperator{\tr}{tr}
+
 %Define the header/footer style
 \pagestyle{fancy}
 \fancyhf{}
@@ -50,10 +52,51 @@
 
 %\makeglossary % enable the glossary
 
+% Carl's packages
+\usepackage{color}
+\usepackage{import}
+\usepackage{amssymb}
+\usepackage{wasysym}
+\usepackage{bm}
+%\usepackage{mathrsfs} 
+
+% Colors
+\definecolor{forest_green}{RGB}{60,160,60}
+\definecolor{co1}{rgb}{0, 0.4470, 0.7410}
+\definecolor{co2}{rgb}{0.8500, 0.3250, 0.0980}
+\definecolor{co3}{rgb}{0.9290, 0.6940, 0.1250}
+\definecolor{co4}{rgb}{0.4940, 0.1840, 0.5560}
+\definecolor{co5}{rgb}{0.4660, 0.6740, 0.1880}
+\definecolor{co6}{rgb}{0.3010, 0.7450, 0.9330}
+\definecolor{co7}{rgb}{0.6350, 0.0780, 0.1840}
+\definecolor{gray}{rgb}{0.5, 0.5, 0.5}
+\definecolor{MPLred}{RGB}{214, 39, 40}
+\definecolor{MPLgreen}{RGB}{44, 160, 44}
+\definecolor{MPLorange}{RGB}{255, 127, 14}
+\definecolor{MPLblue}{RGB}{32, 119, 180}
+
+% Line styles
+\newcommand{\dashed}{\protect\mbox{-\; -\; -\; -}}
+\newcommand{\full}{\protect\mbox{------}}
+\newcommand{\broken}{\protect\mbox{-- -- --}}
+\newcommand{\dashdot}{\protect\mbox{---\; -}}
+
+
+% tikz for block diagrams
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows}
+\usetikzlibrary{positioning}
+\usetikzlibrary{calc}
+\usetikzlibrary{automata}
+\tikzstyle{block} = [draw, rectangle, minimum height=3.5em, minimum width=5em]
+\tikzstyle{dblock} = [draw, dashed, rectangle, minimum height=3.5em, minimum width=5em]
+\tikzstyle{io} = [coordinate]
+\tikzstyle{pinstyle} = [pin edge={to-,thin,black}]
+
 \begin{document}
 
 % Title page
-\title{JHU THESIS TEMPLATE}
+\title{Large-eddy simulations, wake models, and control: Power grid frequency support with wind farms}
 \author{Carl Robert Shapiro}
 \degreemonth{September}
 \degreeyear{2018} 
@@ -61,10 +104,21 @@
 \doctorphilosophy
 \copyrightnotice
 
+% currsize is not set in the long table environment, so we need to set it before we set it up.
+\makeatletter
+\let\@currsize\normalsize
+\makeatother
 
 % Chapters
 \include{chapter0}
 \include{chapter1}
+\include{chapter2}
+\include{chapter3}
+\include{chapter4}
+\include{chapter5}
+\include{chapter6}
+\include{chapter7}
+\include{chapter8}
 
 % Appendix
 \include{appendix}
@@ -75,7 +129,7 @@
 
 % Vita
 \begin{vita}
-Hello World!
+Carl Robert Shapiro was born in Atlanta, Georgia in 1987 and graduated from North Springs High School in Sandy Springs, Georgia in 2006. He received a B.S. in Engineering from Swarthmore College where he also minored in Music. Before beginning his graduate studies at Johns Hopkins, Carl worked as intern at National Renewable Energy Laboratory and an engineer at Steven Winter Associates. Carl received his M.S.E from Johns Hopkins University in 2016.
 \end{vita}
 
 \end{document}

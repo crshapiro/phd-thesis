@@ -1,0 +1,371 @@
+\chapter{Methods}
+\label{chap:methods}
+\chaptermark{methods}
+
+In this thesis, high-fidelity large-eddy simulations and optimal control of systems governed by partial differential equations (PDE) are used extensively. Large-eddy simulations of wind farms,~\cite{Calaf2010a, Meyers2010a, Wu2011a, Wu2012a, Cater2012a, Churchfield2012a, Wu2013a, Stevens2014a, Stevens2014b, Stevens2014c, VerHulst2014a, Goit2015a, Wu2015a, Munters2016a, Munters2017a, Stevens2018a, Martinez2018a, Allaerts2018a} discussed in Section~\ref{sec:methods-les}, are used primarily as a means of evaluating the accuracy of wake models and serving as a ``virtual wind farm'' for testing control designs. In lieu of a physical installed wind farm to conduct control experiments or collect data, these simulation provide a cheap, yet accurate, way to rapidly develop models, sensing techniques, and control designs. In Section~\ref{sec:methods-pdeopt}, optimal control of PDE-constrained systems is discussed. This methodology will be used extensively to develop the secondary frequency regulation controllers of Chapters~\ref{chap:rhc} and~\ref{chap:rhc2}. 
+
+\section{Large-eddy simulations of wind farms}
+\label{sec:methods-les}
+
+The neutrally-buoyant flow over a wind farm is governed by the incompressible Navier-Stokes equations
+\begin{align}
+\frac{\partial u_i}{\partial x_i} &= 0 \\
+\frac{\partial u_i}{\partial t} + u_j \frac{\partial u_i}{\partial x_j} &= - \frac{1}{\rho} \frac{\partial p}{\partial x_i}   - \nu \frac{\partial^2 u_i}{\partial x_j \partial x_j} + f_i
+\end{align}
+where $u_i$ is the $i$-th component of the velocity, $\rho$ is the density of the air,  $\nu$ is the kinematic viscosity, $p$ is the pressure, and $f_i$ is the $i$-th component of the force per unit mass imposed by the turbine on the flow. Einstein's summation convention is used for repeated indices. Direct numerical simulation (DNS) of the Navier-Stokes equations over wind farms pose insurmountable hurdles due to scale disparity. The range of scales present in large wind farms ranges from the length of the farm itself, which can reach several kilometers long, to the Kolmogorov microscale~\cite{Tennekes1972a} $\eta = (\nu^3/\epsilon)^{1/4}$ or the viscous sublayer on the turbine blades. The dissipation rate $\epsilon \sim u_*^3/H$ is related to the friction velocity of $u_*$ and  atmospheric boundary layer height $H$. Assuming $u_*= 0.5$ m/s and a boundary layer height of $H = 1000$ m, the Kolmogorov microscale is approximately $\eta = 2$ mm. Near the blades, the scales become even smaller, on the order of the blade viscous layer height, $\nu/u_{*bl} = 0.01$ mm, where $u_{*bl}$ is on the order of 2 m/s. As a result, DNS of flow over wind farms will be impossible for the foreseeable future. 
+
+Fortunately, large-eddy simulations provide a path forward that is both tractable and retains much of the accuracy of DNS. This allows LES to be used to develop simple analytic wind farm models and as a ``plant model" for testing wind farm control designs. Instead of directly solving all scales present in the flow, a filtering operation $\widetilde{\cdot}$ is applied to the Navier-Stokes equations that removes scales smaller than the filter width $\Delta$. Applying the filtering operations to the Navier-Stokes equations yields
+\begin{align}
+&\frac{\partial \tilde{u}_i}{\partial x_i} = 0 \\
+&\frac{\partial \tilde{u}_i}{\partial t} + \frac{\partial}{\partial x_j} \widetilde{u_j u_i} = - \frac{1}{\rho}\frac{\partial \tilde{p}}{\partial x_i} + \nu \frac{\partial^2 \tilde{u}_i}{\partial x_j \partial x_j} + \tilde{f}_i,
+\end{align}
+While filtering does not have the same properties as averaging, i.e $\tilde{\tilde{f}} \ne \tilde{f}$, we can decompose the advective term in a similar way to the Reynolds stress $\overline{u'_ju'_i} = \overline{u_ju_i} - \bar{u}_j\bar{u}_i$
+\begin{equation}
+\widetilde{u_j u_i} = \tilde{u}_j \tilde{u}_i + \left(   \widetilde{u_j u_i} - \tilde{u}_j \tilde{u}_i \right) = \tilde{u}_j \tilde{u}_i  + \sigma_{ij},
+\end{equation}
+where $\sigma_{ij} = \widetilde{u_j u_i} - \tilde{u}_j \tilde{u}_i$ is the subgrid stress tensor. After applying this decomposition, the filtered equations become
+\begin{align}
+&\frac{\partial \tilde{u}_i}{\partial x_i} = 0 \\
+&\frac{\partial \tilde{u}_i}{\partial t} +\tilde{u}_j \frac{\partial \tilde{u_i}}{\partial x_j}  =  - \frac{\partial \sigma_{ij}}{\partial x_j}  - \frac{1}{\rho}\frac{\partial \tilde{p}}{\partial x_i} + \nu \frac{\partial^2 \tilde{u}_i}{\partial x_j \partial x_j} + \tilde{f}_i.
+\end{align}
+The viscous term is negligible after the filtering because the gradient of the filtered velocity is now smooth. The advective term can be written in a rotational form by adding a ``Bernoulli" term $-\tilde{u}_j \frac{\partial \tilde{u_j}}{\partial x_i} = - \frac{\partial}{\partial x_i} \left(\frac{1}{2}\tilde{u}_j \tilde{u}_j \right)$. We can also decompose the subgrid stess tensor into a deviatoric part by removing its trace $\sigma_{ij} = \tau_{ij} + \frac{1}{3}\sigma_{kk} \delta_{ij}$. The trace of the subgrid stress and the Bernoulli term can then be subsumed into a modified pressure $\tilde{p}^* = \tilde{p}/\rho + \frac{1}{3}\sigma_{kk} + \frac{1}{2}\tilde{u}_j \tilde{u}_j $. These simplifications lead to the filtered Navier-Stokes equations
+\begin{align}
+&\frac{\partial \tilde{u}_i}{\partial x_i} = 0 \\
+&\frac{\partial \tilde{u}_i}{\partial t} +\tilde{u}_j \left( \frac{\partial \tilde{u_i}}{\partial x_j}  - \frac{\partial \tilde{u_j}}{\partial x_i} \right)=  - \frac{\partial \tau_{ij}}{\partial x_j}  - \frac{\partial \tilde{p}^*}{\partial x_i} + \tilde{f}_i.
+\end{align}
+
+\subsection{Flow solver}
+\label{subsec:methods-les-solver}
+In this thesis, the filtered Navier-Stokes equations are solved using the large-eddy simulation code LESGO~\cite{LESGO}. LESGO, which descends from the LES code of Albertson~\cite{Albertson1999a}, has been used to simulate air pollutant transport in urban canopies~\cite{Tseng2006a}, flow over fractal trees~\cite{Graham2012a}, buoyant plumes from oil well blowouts~\cite{Yang2016a}, heat entrainment under arctic sea ice~\cite{Ramudu2017a}, and flow over wind turbines~\cite{Martinez2018a} and wind farms~\cite{Calaf2010a, Stevens2014b, Verhulst2015a, Stevens2018a}. Written in rotational form, LESGO ensures mass, momentum, and kinetic energy conservation~\cite{Albertson1999a}. LESGO simulates Cartesian domains using psuedo-spectral numerics that mixes spectral derivatives in the streamwise direction $x$ and spanwise direction $y$ with second-order finite-differencing in the vertical direction $z$. Time integration uses the second-order Adams-Bashforth method. The advective term is calculated in spectral space and dealiased using the 3/2-rule~\cite{Orszag1975a}. The pressure is found from the pressure Poisson equation, which is solved using the tridiagonal matrix algorithm in the vertical direction and spectrally in the horizontal directions. The (nonlinear) right hand side of the Poisson equation is evaluated pseudo-spectrally. LESGO can be run in parallel using the message passing interface, where the domain is split between processors in the vertical direction.
+
+The code uses a staggered grid in the vertical direction, where the $u$ and $v$ components of velocity and the pressure $p$ are stored on the $uv$ grid and the $w$ component of velocity is stored on the $w$ grid. Vertical derivatives or evaluated on the opposing grids, e.g. $\frac{\partial u}{\partial z}$ is evaluated on the $w$ grid. The first grid point of the $w$ grid starts at $z=0$, and the first grid point of the $uv$ grid is at $z=\Delta z/2$, where $\Delta z$ is the vertical grid size.
+
+The stress at a wall with a roughness height of $z_0$ is modeled using the equilibrium wall model~\cite{Albertson1999a}. The total wall stress is given by
+\begin{equation}
+\tau_w = - \left[  \frac{\kappa u_\tau}{\ln(z/z_0)} \right]^2,
+\end{equation}
+where $z = \Delta z/2$ is the height from the wall, $\kappa$ is the von-K\'{a}rm\'{a}n constant, and $u_\tau$ is the velocity magnitude 
+\begin{equation}
+u_\tau^2 = \tilde{u}^2 + \tilde{v}^2
+\end{equation}
+at $z$. The wall stress is then apportioned to each component~\cite{Schmidt1989a} as
+\begin{equation}
+\left.\tau_{i3}\right\vert_{\text{wall}}= \tau_w \frac{\tilde{u}_i}{u_\tau}.
+\end{equation}
+At the wall, a no-penetration conditions is applied for $w$. At horizontal boundaries without walls, a stress-free boundary condition is applied, where the vertical derivatives of the $u$ and $v$ components of the velocity vanish, and a no-penetration condition is applied for $w$.
+
+We consider domains with prescribed inflow conditions. LESGO's standard configuration uses a periodic boundary condition for the inflow, which naturally arises from the pseudo-spectral numerics. In this configuration, a wall is usually applied at the bottom boundary and the flow is driven using a streamwise pressure gradient. The resulting force term is 
+\begin{equation}
+\tilde{f}_i = -\frac{1}{\rho}\frac{\partial p_\infty}{\partial x} \delta_{i1} + \tilde{f}^a_i,
+\end{equation}
+where $p_\infty$ is the freestream pressure and $\tilde{f}^a_i$ are any other applied forces, such as forces representing the momentum losses due to wind turbines.
+
+In cases with a prescribed inflow, the streamwise pressure gradient is not imposed. Instead, the inflow is imposed using a fringe region at the end of the domain. This fringe region smoothly transitions to a prescribed inflow velocity~\cite{Stevens2014a}. For uniform (laminar) inflow, the velocity field is transitioned to a constant $\tilde{u}_i(0,y,z) = U_\infty \delta_{i1}$. For cases where an inflow for a developed boundary layer is needed, such as for a developing boundary layer or over a finite-sized wind farm, the inflow condition is sampled from a concurrently running simulation with periodic boundary conditions~\cite{Stevens2014a}.
+
+\subsection{Subgrid stress models}
+\label{subsec:methods-les-subgrid}
+In order to solve the filtered Navier-Stokes equations, a closure is needed for the subgrid stress tensor $\tau_{ij}$. The eddy viscosity model uses an analogy with ordinary viscosity
+\begin{equation}
+\tau_{ij} = - 2 \nu_T \tilde{S}_{ij}
+\end{equation}
+where $\tilde{S}_{ij}$ is the filtered strain rate tensor
+\begin{equation}
+ \tilde{S}_{ij} = \frac{1}{2}\left( \frac{\partial \tilde{u}_i}{\partial x_j} + \frac{\partial \tilde{u}_j}{\partial x_i}\right).
+\end{equation}
+(Note that the viscous term can be written as $\frac{\partial}{\partial x_j} 2 \nu S_{ij} = \frac{\partial}{\partial x_j} \nu \left(\frac{\partial u_i}{\partial x_j} + \frac{\partial u_i}{\partial x_j} \right) = \nu \frac{\partial^2 u_i}{\partial x_j \partial x_j}$ because of incompressibility and constancy of $\nu$.) The difficulty with the eddy viscosity model is to write a suitable model for the eddy viscosity $\nu_T$. In this thesis, we will use two subgrid stress closures, the Smagorinsky model and the Lagrangian-averaged scale-dependent (LASD) model.
+
+\subsubsection{Smagorinsky model}
+\label{subsubsec:methods-les-subgrid-smag}
+The Smagorinsky subgrid stress model~\cite{Smagorinsky1963a} uses the strain rate tensor again for a velocity scale, which dimensionally requires another length scale. Since the subgrid stress only represents scales smaller than the filter size $\Delta$, this is the only suitable selection of this length scale. The resulting Smagorinsky model is 
+\begin{equation}
+\nu_T = C_s^2 \Delta^2 \vert \tilde{S} \vert \qquad \qquad \vert \tilde{S} \vert^2 = 2 \tilde{S}_{ij} \tilde{S}_{ij}
+\end{equation}
+where $C_s$ is the Smogorinsky coefficient. In the inertial subrange of high-Reynolds-number turbulence, Lilly showed that the appropriate Smagorinsky coefficient for a spectral cutoff filter is $C_s \approx 0.16$~\cite{Lilly1966b, Pope2000a}.
+
+For wall bounded flows, the value $C_s = 0.16$ is overly dissipative towards the wall. Instead, the Mason wall damping model~\cite{Mason1994a} is used to specify the Smagorinsky coefficient. In this model, the mixing length $\lambda = C_s \Delta$ depends on the height from the wall
+\begin{equation}
+\lambda^{-n} = \lambda_0^{-n} + \left[\kappa (z + z_0)\right]^{-n},
+\end{equation}
+where $n =2$, $\kappa$ is the von-K\'{a}rm\'{a}n constant, $z$ is the height from the wall, $z_0$ is the surface roughness height, and $\lambda_0 = C_0 \Delta$ is the mixing length with the Lilly-Smagorinsky coefficient $C_0 = 0.16$.
+
+\subsubsection{Lagrangian-averaged scale-dependent model}
+\label{subsubsec:methods-les-subgrid-lasd}
+The basic idea behind dynamic subgrid stress models is to use multiple filter sizes to measure the Smagorinsky coefficient in the resolved scales of the flow~\cite{Germano1992a, Bou-Zeid2005a}. Let $\tilde{\cdot}$ denote a filtering operation of a scale $\Delta$ and $\bar{\cdot}$ denote a test filter on scale $\alpha \Delta$, where $\alpha > 1$. We define the test-filtered filtered Navier-Stokes equations as
+\begin{equation}
+\frac{\partial \bar{\tilde{u}}_i}{\partial t} + \frac{\partial}{\partial x_j} \bar{\tilde{u}}_j\bar{\tilde{u}}_i  = - \frac{\partial T_{ij} }{\partial x_j} - \frac{\partial \bar{\tilde{p}}^*}{\partial x_i},
+\end{equation}
+where $T_{ij}$ is the stress at scales bar-tilde. The Germano identity~\cite{Germano1992a} relates the stress at different scales $T$ and $\tau$ and results in the resolved stress tensor
+\begin{equation}
+L_{ij} = T_{ij} - \bar{\tau}_{ij} = - \bar{\tilde{u}}_j\bar{\tilde{u}}_i + \overline{\tilde{u}_j\tilde{u}}_i,
+\end{equation}
+which can be measured in the resolved part of the flow. Using the Smagorinsky model for both $T_{ij}$ and $\bar{\tau}_{ij}$
+\begin{equation}
+T_{ij} = 2C_{s,\alpha\Delta}^2 \left( \alpha \Delta\right)^2 \vert \bar{\tilde{S}} \vert \bar{\tilde{S}}_{ij} \qquad \qquad \bar{\tau}_{ij} = 2C_{s,\Delta}^2 \Delta^2 \overline{\vert \tilde{S} \vert \tilde{S}_{ij}},
+\end{equation}
+we can now define the tensor $M_{ij}$ based on the modeled values for $T_{ij}$ and $\bar{\tau}_{ij}$
+\begin{equation}
+C_{s,\Delta}^2 M_{ij} = T_{ij} - \bar{\tau}_{ij} =2 C_{s,\Delta}^2 \Delta^2 \left( \overline{\vert \tilde{S} \vert \tilde{S}_{ij}} - \alpha^2 \beta \vert \bar{\tilde{S}} \vert \bar{\tilde{S}}_{ij} \right),
+\end{equation}
+where $\beta = C_{s,\alpha\Delta}^2 / C_{s,\Delta}^2$. The error between the measurements and model is therefore
+\begin{equation}
+e_{ij} = L_{ij} -  C_{s,\Delta}^2 M_{ij}.
+\end{equation}
+
+The simplest approach is to assume scale invariance ($\beta = 1$) and minimize the averaged least-square error $\left \langle e_{ij} e_{ij} \right \rangle$.
+\begin{equation}
+\underset{C_{s,\Delta}}{\mathrm{min}} \qquad \qquad \left \langle e_{ij} e_{ij} \right \rangle = \left \langle L_{ij} L_{ij} \right \rangle - 2 C_{s,\Delta}^2 \left \langle L_{ij} M_{ij} \right \rangle + C_{s,\Delta}^4\left \langle M_{ij} M_{ij} \right \rangle,
+\end{equation} 
+where the averaging can be any suitable averaging operation. The squared error is minimized by finding the root of the derivative
+\begin{equation}
+\frac{d}{d C_{s,\Delta}} \left \langle e_{ij} e_{ij} \right \rangle = -4 C_{s,\Delta} \left \langle L_{ij} M_{ij} \right \rangle + 4C_{s,\Delta}^3\left \langle M_{ij} M_{ij} \right \rangle = 0,
+\end{equation}
+which yields the following equation for the Smagorinsky coefficient
+\begin{equation}
+ C_{s,\Delta}^2 = \frac{\left \langle L_{ij} M_{ij} \right \rangle}{\left \langle M_{ij} M_{ij} \right \rangle}.
+\end{equation}
+
+This scale-invariant approach can be applied using planar averaging or Lagrangian averaging along fluid paths~\cite{Bou-Zeid2005a}. Scale-dependent models can also be derived by using two test filters to determine the coefficient $\beta$~\cite{Porte-Agel2000a}. In this thesis, we use the most advanced form of the dynamic models, the Lagrangian-average scale-dependent (LASD) model, which performs averaging along fluid paths and includes scale dependence~\cite{Bou-Zeid2005a}.
+
+\subsection{Wind turbine model}
+\label{subsec:methods-les-turbine}
+In a wind farm with $N$ turbines without additional applied forces, the filtered force that enters the filtered Navier Stokes equations is
+\begin{equation}
+\tilde{\boldsymbol{f}^a} = \sum_{n=1}^N \mathbf{f}_n(\mathbf{x},t),
+\end{equation}
+where $ \mathbf{f}_n(\mathbf{x},t)$ is the force per unit volume applied by the $n$-th turbine. LESGO includes the actuator line model~\cite{Martinez2018a}, which models the effects of individual blades, and the actuator disk model~\cite{Calaf2010a}, which only models the wind turbine as a drag disk. While the actuator line model is a better parameterization of detailed flow phenomena near the turbine blades and in the near wake, both models accurately predict far wake characterizations and power production~\cite{Stevens2018a}. Furthermore, for large wind farms with coarse grid resolution, the actuator line cannot be properly resolved. As a result, we use the actuator disk model, without rotation or tangential forces, that distributes the force across several grid points that together represent the turbine. 
+
+The actuator disk model represents the wind turbine as a drag disk that exerts a uniform thrust force across its area. The actuator disk model applies directly to the inviscid flow past a drag disk with a uniform velocity $U_\infty$~\cite{Glauert1935a, Glauert1947a, Burton2011a}. The resulting thrust force magnitude of a turbine (dropping the indices that denote the turbine number) is
+\begin{equation}
+F = - \frac{1}{2} \frac{\pi D^2}{4} \rho C_T U_\infty^2,
+\end{equation}
+where $\rho$ is the fluid density, $C_T$ is the thrust coefficient, and $D$ is the diameter of the actuator disk. Applying mass conservation, momentum conservation, and Bernoulli's equation, the velocity at the disk $u_d$ and velocity deficit in the ultimate wake $\delta u_0$ 
+\begin{equation}
+u_d = U_\infty(1-a) \qquad \qquad \delta u_0 = 2 U_\infty a
+\end{equation}
+are found to depend on the induction factor $a$. This induction factor depends only on the thrust coefficient 
+\begin{equation}
+C_T= 4a(1-a).
+\end{equation}
+Since the power generated by the turbine is
+\begin{equation}
+P = -F u_d = \frac{1}{2} \frac{\pi D^2}{4} \rho C_P U_\infty^3,
+\end{equation}
+the power coefficient only depends on the induction factor
+\begin{equation}
+C_P= 4a(1-a)^2.
+\end{equation}
+
+This model can also be applied to the turbulent flow past a wind turbine. However, the inflow velocity $U_\infty$ becomes somewhat difficult to define in wind farms. The solution is a local approach~\cite{Meyers2010a, Calaf2010a}, which writes the thrust force and power as
+\begin{align}
+F &= -\frac{1}{2} \frac{\pi D^2}{4} \rho C_T' u_d^2\\
+P &= \frac{1}{2} \frac{\pi D^2}{4} \rho C_P' u_d^3,
+\end{align}
+where $C_T'$ is the local thrust coefficient and $C_P'$ is the local power coefficient. Using the results from the actuator disk theory, the relationships between the local and standard thrust and power coefficients are
+\begin{equation}
+C_T' = \frac{C_T}{(1-a)^2} \qquad \qquad C_P' = \frac{C_p}{(1-a)^3}.
+\end{equation}
+After some algebra, we find that
+\begin{equation}
+a = \frac{C_T'}{4 + C_T'} \qquad \qquad C_P' = C_T'.
+\end{equation}
+
+LESGO represents each wind turbine as an actuator disk with finite thickness $s$, which can be represented by the normalized indicator function, with units of inverse volume
+\begin{equation}
+\mathcal{I}(\mathbf{x}) = V^{-1}\left[ H(\hat{x}+s/2) - H(\hat{x} - s/2) \right] H(D/2 - \hat{r}),
+\end{equation}
+where $V = s \pi D^2/4$ is the volume of the disk, $H(x)$ is the Heaviside function, and $\hat{r}^2 = \hat{y}^2 + \hat{z}^2$. The coordinate system of the actuator disk is denoted by hats with the $\mathbf{\hat{e}_1}$ unit vector opposite of the thrust force. Since LESGO is a psuedo-spectral code, using the normalized indicator function to apply the thrust force on the flow directly would create Gibbs phenomena around the actuator disk. Instead, LESGO uses a smoothed indicator function
+%
+\begin{equation}
+\mathcal{R}(\mathbf{x}) = \int G(\mathbf{x}-\mathbf{x'}) \, \mathcal{I}(\mathbf{x'}) \, d^3\mathbf{x'}
+\end{equation}
+%
+based on a three-dimensional Gaussian kernel. The kernel
+%
+\begin{equation}
+\label{eq:LESGO-Gaussian-kernel}
+G(\mathbf{x}) = \left(\frac{6}{\pi \Delta^2}\right)^{3/2} \exp \left( -\frac{6\lVert\mathbf{x}\rVert^2}{\Delta^2} \right)
+\end{equation}
+%
+has a filter width $\Delta = 1.5 h $ that is based on the grid size $h = \sqrt{\Delta x^2 + \Delta y^2 + \Delta z^2}$, where $\Delta x$, $\Delta y$, and $\Delta z$ are the grid spacings.  
+
+The smoothed indicator function can be decomposed 
+\begin{equation} \mathcal{R}(\mathbf{x}) = \mathcal{R}_1(\hat{x}) \mathcal{R}_2(\hat{r})
+\end{equation}
+into a normal component 
+\begin{equation}
+\mathcal{R}_1(\hat{x}) = \frac{1}{s} \left(\frac{6}{\pi \Delta^2}\right)^{1/2} \int \left[ H\left(\hat{x}'+\frac{s}{2}\right) - H\left(\hat{x}' - \frac{s}{2}\right) \right] \exp \left( -6\frac{(\hat{x}-\hat{x}')^2}{\Delta^2} \right) \, d \hat{x}' 
+\end{equation} and radial component
+ \begin{equation} 
+ \mathcal{R}_2(\hat{r}) = \frac{1}{A}\frac{6}{\pi \Delta^2} \int \int H(D/2 - \hat{r}') \exp \left( -6\frac{(\hat{y}-\hat{y}')^2 + (\hat{z}-\hat{z}')^2}{\Delta^2} \right) \, d \hat{y}' \, d \hat{z}',
+\end{equation} 
+where $A = \pi D^2/4$ is the swept area of the turbine and $s$ is the thickness of the actuator disk. LESGO calculates the the smoothed indicator function at each point using the analytic solution to the normal component
+\begin{equation}
+\mathcal{R}_1(\hat{x}) = \frac{1}{s}\frac{1}{2}\mathrm{erf}\left(\frac{\sqrt{6}}{\Delta}\left(x+\frac{s}{2}\right) \right) - \frac{1}{2}\mathrm{erf}\left(\frac{\sqrt{6}}{\Delta}\left(x-\frac{s}{2}\right) \right)
+\end{equation}
+and numerically computing $\mathcal{R}_2(\hat{r})$ on a grid finer than the simulation grid.
+
+LESGO uses this local formulation and distributes the turbine thrust force using a smoothed normalized indicator function $\mathcal{R}(\mathbf{x})$ with time-filtering of the disk-averaged velocity 
+\begin{equation}
+\mathbf{f}(\mathbf{x}) = -\frac{1}{2} \frac{\pi D^2}{4} \rho C_T' \left\langle u_d\right\rangle_T^2 \mathcal{R}(\mathbf{x}) \,\mathbf{\hat{e}_1}.
+\end{equation}
+The disk averaged velocity is also found using the smoothed indicator function
+\begin{equation}
+u_d = \int \mathcal{R}(\mathbf{x}) \, \tilde{\mathbf{u}}(\mathbf{x}) \, d^3\mathbf{x},
+\end{equation}
+and time averaging is performed using an exponential filter with time scale $\tau$
+\begin{equation}
+\tau \frac{ d \left\langle u_d \right\rangle_T}{dt} = u_d - \left\langle u_d \right\rangle_T.
+\end{equation}
+
+
+
+\subsection{Finite wind farm simulation}
+\label{subsec:methods-les-farm}
+\begin{figure}[b!]
+\begin{center}
+\includegraphics[width=\textwidth]{./fig/les.eps}
+\end{center}
+\caption{\label{fig:les} Instantaneous streamwise velocity contours for a large eddy simulation with actuator disk turbine models, which are indicated by black dashes. Each turbine has a rotor diameter of $D = 100$ m and hub height of 100 m. The mean and maximum inlet velocities are approximately 9 m/s and 12 m/s, respectively. The inlet conditions are generated using a concurrent precursor simulation~\cite{Stevens2014a} shown at the beginning of the plotted domain.}
+\end{figure}
+
+In much of this thesis, we will consider a wind farm composed of 84 turbines arranged in $N=7$ rows of $M=12$ aligned columns. Each turbine has a 100 m rotor diameter $D$ and a 100 m hub height. The spacing between turbines is $7D$ in the streamwise direction and $5D$ in the spanwise direction. We assume a  local thrust coefficient of $C_T'= 1.33$ is representative of wind turbines operating in region 2~\cite{Calaf2010a, Stevens2014c}. Inlet conditions for the wind farm are generated using the concurrent-precursor method~\cite{Stevens2014a}. Both the farm and precursor domains have 9~km streamwise, 6~km spanwise, and 1~km vertical lengths. The number of grid points in each domain are $384 \times 256 \times 192$, i.e. a grid size of $\Delta x = \Delta y = 23.44$ m is used in the streamwise and spanwise spectral directions and a grid size of $\Delta z = 5.21$ is used in the finite-difference vertical direction. The forcing fringe region of the farm domain is 1.125~km long and the first row of turbines is located 1.4 km from the beginning of the domain. The LASD subgrid scale model is used. A color contour plot of a snapshot of the streamwise velocity is shown in Figure~\ref{fig:les}. Unless noted otherwise, the simulations in the remainder of this thesis use this wind farm and computational set up.
+
+
+\section{Optimal control of PDE-constrained systems}
+\label{sec:methods-pdeopt}
+Optimization of systems governed by partial differential equations is important in a range of engineering applications. First developed in the work of Lions~\cite{Lions1971a}, PDE-constrained optimal control has been applied in the last few decades to a many fluid dynamics applications, such as drag reduction of turbulent boundary layers ~\cite{Bewley2001a} and power maximization of wind farms in the atmospheric boundary layer~\cite{Goit2015a}. In this thesis, we will largely follow the approaches of Borz\`{i} \& Schulz~\cite{Borzi2011a} and Goit \& Meyers~\cite{Goit2015a}. We will consider problems of the form
+\begin{align}
+\label{eq:pde_constrained1}
+\underset{\mathbf{q}, \mathbf{u}}{\textrm{min}} &\qquad \mathcal{J}(\mathbf{q},\mathbf{u}) \\
+\label{eq:pde_constrained2}
+\text{subject to} &\qquad \mathbf{B}(\mathbf{q}, \mathbf{u}) = \mathbf{0},
+\end{align}
+where $\mathbf{q} \in Q$ are the states of the system, $\mathbf{u} \in U$ are the control variables, $\mathcal{J}:Q\times U \rightarrow \mathbb{R}$ is the cost functional, and $\mathbf{B}:Q \times U \rightarrow Z$ are the state equations (the constraining PDEs). We will assume that $Q$, $U$, and $Z$ are Hilbert spaces whose respective scalar products are denoted by $\langle \cdot, \cdot \rangle_Q$, $\langle \cdot, \cdot \rangle_U$, and $\langle \cdot, \cdot \rangle_Z$.
+
+In practice, it is typically easier to solve an unconstrained problem, and we want a method that minimizes possible evaluations of the constraining PDEs. The formal Lagrangian approach described below allows the constrained problem to be reformulated as the minimization of an unconstrained functional whose value and gradients can be found using a single evaluation of a set of PDEs. This approach requires forming a Lagrangian functional, defining a suitable directional derivative and gradient, and specifying the optimality conditions in terms of PDE evaluations.
+
+The PDE-constrained problem is reformulated as an unconstrained problem by incorporating the constraints into an augmented cost functional known as the Lagrangian. The Lagrangian $\mathcal{L}$ is the sum of the constrained cost functional and the scalar product of the the adjoint variables (Lagrange multipliers) $\mathbf{z} \in Z$ with the constraints $\mathbf{B}(\mathbf{q}, \mathbf{u})$
+\begin{equation}
+\mathcal{L}(\mathbf{q}, \mathbf{u}, \mathbf{z}) = \mathcal{J}(\mathbf{q}, \mathbf{u} ) + \left \langle \mathbf{z}, \mathbf{B}(\mathbf{q}, \mathbf{u}) \right \rangle_Z.
+\end{equation}
+The scalar product is defined here with respect to the Hilbert space of the adjoint variable and constraints $Z$.
+
+In order to specify the first-order Karush-Kuhn-Tucker (KKT) optimality conditions~\cite{Boyd2004a}, we must first define a suitable generational of the directional derivative for scalar functionals on Hilbert spaces. The G\^{a}teaux derivative of $\mathcal{F}: X \rightarrow \mathbb{R}$, a functional defined on a Hilbert space $X$, in the direction $\boldsymbol \delta \mathbf{x} \in X$ is defined as
+\begin{equation}
+\mathcal{F}_\mathbf{x}(\boldsymbol \delta \mathbf{x}) = \left. \frac{d}{d\alpha} \mathcal{F}(\mathbf{x} + \alpha \boldsymbol \delta \mathbf{x}) \right\vert_{\alpha=0}.
+\end{equation}
+Using the Reisz representation theorem, we find that the directional derivative can be written as the scalar product of the gradient of $\mathcal{F}$ with respect to $\mathbf{x}$ and the direction $\boldsymbol \delta \mathbf{x}$
+\begin{equation}
+\mathcal{F}_\mathbf{x}(\boldsymbol \delta \mathbf{x}) = \left \langle \frac{\partial \mathcal{F}}{\partial \mathbf{x}}, \boldsymbol \delta \mathbf{x} \right \rangle_X.
+\end{equation}
+
+
+With this definition of the G\^{a}teaux derivative, the the KKT conditions are written as 
+\begin{equation}
+\mathcal{L}_\mathbf{z}(\boldsymbol \delta \mathbf{z}) = 0 \qquad \qquad \mathcal{L}_\mathbf{q}(\boldsymbol \delta \mathbf{q}) = 0 \qquad \qquad \mathcal{L}_\mathbf{u}(\boldsymbol \delta \mathbf{u}) = 0.
+\end{equation}
+By evaluating the G\^{a}teaux derivatives and rewriting in terms of a scalar product using the Reisz representation theorem, we can then identify the gradient of the Lagrangian. The G\^{a}teaux derivative of the Lagrangian with respect to the Lagrange multipliers yields
+\begin{equation}
+\mathcal{L}_\mathbf{z}(\boldsymbol \delta \mathbf{z}) = \left \langle \boldsymbol \delta \mathbf{z}, \mathbf{B}(\mathbf{q}, \mathbf{u})\right \rangle_Z = 0.
+\end{equation}
+Since the direction vector can be any arbitrary vector, we require that the second term in the scalar product vanishes. This simply returns the state equations $\mathbf{B}(\mathbf{q}, \mathbf{u}) = \mathbf{0}$.
+
+When evaluating the G\^{a}teaux derivatives with respect to the state variables and input variables, we will encounter some linear operators that result from linearizing the state equations about $\left(\mathbf{q}, \mathbf{u}\right)$ in the direction $\left(\boldsymbol \delta \mathbf{q}, \boldsymbol \delta  \mathbf{u}\right)$
+\begin{equation}
+\frac{\partial \mathbf{B}}{\partial \mathbf{q}} \boldsymbol \delta \mathbf{q} + \frac{\partial \mathbf{B}}{\partial \mathbf{u}} \boldsymbol \delta \mathbf{u} = \mathbf{0},
+\end{equation}
+where $\frac{\partial \mathbf{B}}{\partial \mathbf{q}} : Q \rightarrow Z$ and  $\frac{\partial \mathbf{B}}{\partial \mathbf{u}} : U \rightarrow Z$ are linear operators that map the state and input vectors, respectively, to the Hilbert space containing the solution to $ \mathbf{B}(\mathbf{q}, \mathbf{u}) = \mathbf{0}$. The adjoints of these linear operators, $\left(\frac{\partial \mathbf{B}}{\partial \mathbf{q}} \right)^* : Z \rightarrow Q$ and $\left(\frac{\partial \mathbf{B}}{\partial \mathbf{u}} \right)^* : Z \rightarrow U$, map back to the state and input Hilbert spaces, respectively, and are defined by
+\begin{align}
+\left \langle \mathbf{z}, \frac{\partial \mathbf{B}}{\partial \mathbf{q}} \boldsymbol \delta \mathbf{q} \right \rangle_Z&=
+\left \langle\left(\frac{\partial \mathbf{B}}{\partial \mathbf{q}} \right)^*  \mathbf{z}, \boldsymbol \delta \mathbf{q} \right \rangle_Q \\
+\left \langle \mathbf{z}, \frac{\partial \mathbf{B}}{\partial \mathbf{u}} \boldsymbol \delta \mathbf{u} \right \rangle_Z&=
+\left \langle\left(\frac{\partial \mathbf{B}}{\partial \mathbf{u}} \right)^*  \mathbf{z}, \boldsymbol \delta \mathbf{u} \right \rangle_U.
+\end{align}
+In these cases, the scalar products on each side of the equality are taken over different Hilbert spaces. This is a direct consequence of the Reisz representation theorem and the domain and range of the linear operators and their adjoints. The gradients of the cost functional are formally defined using the G\^{a}teaux derivative and the Reisz representation theorem. For example, the gradient $\frac{\partial \mathcal{J}}{\partial \mathbf{u}}$ is defined by writing the G\^{a}teaux derivative in its Reisz representation form
+\begin{equation}
+\mathcal{J}_\mathbf{u}(\boldsymbol \delta \mathbf{u}) = \left. \frac{d}{d\alpha} \mathcal{J}(\mathbf{u} + \alpha \boldsymbol \delta \mathbf{u}) \right\vert_{\alpha=0} = \left \langle \frac{\partial \mathcal{J}}{\partial \mathbf{u}}, \boldsymbol \delta \mathbf{u} \right \rangle_U.
+\end{equation}
+
+The G\^{a}teaux derivative of the Lagrangian with respect to the state variables, combined with the KKT conditions, yields
+\begin{align}
+\mathcal{L}_\mathbf{q}(\boldsymbol \delta \mathbf{q}) &= \left \langle \frac{\partial \mathcal{J}}{\partial \mathbf{q}}, \boldsymbol \delta \mathbf{q} \right \rangle_Q +  \left \langle \mathbf{z},  \frac{\partial \mathbf{B}}{\partial \mathbf{q}} \boldsymbol \delta \mathbf{q} \right \rangle_Z \\
+&= \left \langle \frac{\partial \mathcal{J}}{\partial \mathbf{q}}, \boldsymbol \delta \mathbf{q} \right \rangle_Q +  \left \langle \left(  \frac{\partial \mathbf{B}}{\partial \mathbf{q}}\right)^*\mathbf{z},  \boldsymbol \delta \mathbf{q} \right \rangle_Q \\
+&= \left \langle \frac{\partial \mathcal{J}}{\partial \mathbf{q}} + \left(  \frac{\partial \mathbf{B}}{\partial \mathbf{q}}\right)^*\mathbf{z},  \boldsymbol \delta \mathbf{q} \right \rangle_Q = 0.
+\end{align}
+Again noting that the direction $\boldsymbol \delta \mathbf{q}$ is arbitrary, we require the first term in the scalar product to vanish. This yields the adjoint equations
+\begin{equation}
+\label{eq:adjoint_eq}
+\frac{\partial \mathcal{J}}{\partial \mathbf{q}} + \left(  \frac{\partial \mathbf{B}}{\partial \mathbf{q}}\right)^*\mathbf{z} = \mathbf{0}.
+\end{equation}
+Finally, the G\^{a}teaux derivative of the Lagrangian with respect to the input variables, combined with the KKT conditions, yields
+\begin{align}
+\mathcal{L}_\mathbf{u}(\boldsymbol \delta \mathbf{u}) &= \left \langle \frac{\partial \mathcal{J}}{\partial \mathbf{u}}, \boldsymbol \delta \mathbf{u} \right \rangle_U +  \left \langle \mathbf{z},  \frac{\partial \mathbf{B}}{\partial \mathbf{u}} \boldsymbol \delta \mathbf{u} \right \rangle_Z \\
+&= \left \langle \frac{\partial \mathcal{J}}{\partial \mathbf{u}}, \boldsymbol \delta \mathbf{u} \right \rangle_U +  \left \langle \left(  \frac{\partial \mathbf{B}}{\partial \mathbf{u}}\right)^*\mathbf{z},  \boldsymbol \delta \mathbf{u} \right \rangle_U \\
+&= \left \langle \frac{\partial \mathcal{J}}{\partial \mathbf{u}} + \left(  \frac{\partial \mathbf{B}}{\partial \mathbf{u}}\right)^*\mathbf{z},  \boldsymbol \delta \mathbf{u} \right \rangle_U.
+\end{align}
+Requiring the scalar product to vanish yields the design equations
+\begin{equation}
+\label{eq:design_eq}
+\frac{\partial \mathcal{J}}{\partial \mathbf{u}} + \left(  \frac{\partial \mathbf{B}}{\partial \mathbf{u}}\right)^*\mathbf{z} = \mathbf{0}.
+\end{equation}
+
+Using the Lagrangian approach described above, the original problem can be solved by writing the constrained problem~\eqref{eq:pde_constrained1}--\eqref{eq:pde_constrained2} as a minimization of an unconstrained cost functional in two ways. First, the method of Lagrange multipliers results in the problem
+\begin{align}
+\underset{\mathbf{q}, \mathbf{u}, \mathbf{z}}{\textrm{min}} &\qquad \mathcal{L}(\mathbf{q},\mathbf{u}, \mathbf{z}),
+\end{align}
+whose gradient is given by
+\begin{equation}
+\nabla \mathcal{L} = \left(\mathbf{B}(\mathbf{q}, \mathbf{u}), \frac{\partial \mathcal{J}}{\partial \mathbf{q}} + \left(  \frac{\partial \mathbf{B}}{\partial \mathbf{q}}\right)^*\mathbf{z},  \frac{\partial \mathcal{J}}{\partial \mathbf{u}} + \left(  \frac{\partial \mathbf{B}}{\partial \mathbf{u}}\right)^*\mathbf{z} \right).
+\end{equation}. 
+Alternatively, the problem can be solved using the reduced cost functional
+\begin{align}
+\underset{\mathbf{u}}{\textrm{min}} &\qquad \tilde{\mathcal{J}}(\mathbf{u}),
+\end{align}
+where $\tilde{\mathcal{J}}(\mathbf{u}) = \mathcal{J}(\mathbf{q}(\mathbf{u}))$ is the reduced cost functional with $\mathbf{q}(\mathbf{u})$ denoting the solution to $\mathbf{B}(\mathbf{q}, \mathbf{u})  = \mathbf{0}$. With this approach, the state and adjoint equations are explicitly enforced by solving $\mathbf{B}(\mathbf{q}, \mathbf{u})  = \mathbf{0}$ and $\frac{\partial \mathcal{J}}{\partial \mathbf{q}} + \left(  \frac{\partial \mathbf{B}}{\partial \mathbf{q}}\right)^*\mathbf{z} = \mathbf{0}$, as discussed in the derivation of~\eqref{eq:adjoint_eq}. The design equation then gives the gradient of the reduced cost functional
+\begin{equation}
+\frac{\partial \tilde{\mathcal{J}}}{\partial \mathbf{u}} = \frac{\partial \mathcal{J}}{\partial \mathbf{u}} + \left(  \frac{\partial \mathbf{B}}{\partial \mathbf{u}}\right)^*\mathbf{z}.
+\end{equation}
+
+\subsection{Example}
+\label{sec:methods-pdeopt-example}
+In this section we consider an example of a PDE-constrained optimization problem that is solved using the reduced cost functional approach. Consider the PDE-constrained minimization problem
+\begin{align}
+\label{eq:example1}
+\underset{q,u}{\textrm{min}} &\qquad \mathcal{J}(q,u) = \frac{1}{2}\int_\Omega \left( q(\mathbf{x}) - f(\mathbf{x})\right)^2 \, d\mathbf{x} + \frac{\gamma}{2} \int_\Omega u^2(\mathbf{x}) \, d\mathbf{x} \\
+\label{eq:example2}
+\text{subject to} &\qquad \nabla^2 q = -u(x)& \qquad & \hspace{-15em} \text{on} \quad \Omega\\
+\label{eq:example3}
+&\qquad q(\mathbf{x}) = 0 & \qquad & \hspace{-15em} \text{on} \quad \partial \Omega.
+\end{align}
+We will define the scalar product as 
+\begin{equation}
+\left \langle v, w \right \rangle = \int_\Omega v(\mathbf{x}) w(\mathbf{x}) \, d \mathbf{x}
+\end{equation}
+and the Lagrangian using
+\begin{equation}
+\mathcal{L}(q, u, z) = \mathcal{J}(q,u) + \int_\Omega z(\mathbf{x}) \left[ \nabla^2 q + u(\mathbf{x}) \right] \, d\mathbf{x}.
+\end{equation}
+The adjoint equations are found via
+\begin{align}
+\mathcal{L}_q(\delta q) &= \int_\Omega \left( q(\mathbf{x}) - f(\mathbf{x})\right) \delta q(\mathbf{x}) \, d\mathbf{x} +\int_\Omega z(\mathbf{x}) \nabla^2 \delta q \, d\mathbf{x} \nonumber \\
+&= \int_\Omega \left( q(\mathbf{x}) - f(\mathbf{x})\right) \delta q(\mathbf{x}) \, d\mathbf{x} +\int_\Omega \nabla^2 z \delta q \, d\mathbf{x} - \int_\Omega  \delta q(\mathbf{x}) \nabla^2 z \, d\mathbf{x} \\
+&= \int_\Omega \left[ q(\mathbf{x}) - f(\mathbf{x})- \nabla^2 z\right] \delta q(\mathbf{x}) \, d\mathbf{x} +\int_{\partial \Omega} \left( \nabla z \delta q\right) \cdot \mathbf{n} \, dS \nonumber \\
+&= \int_\Omega \left[ q(\mathbf{x}) - f(\mathbf{x})- \nabla^2 z\right] \delta q(\mathbf{x}) \, d\mathbf{x} +\int_{\partial \Omega} \delta q(\mathbf{x}) \nabla z  \cdot \mathbf{n} \, dS +\int_{\partial \Omega} z(\mathbf{x}) \nabla \delta q  \cdot \mathbf{n} \, dS. \nonumber
+\end{align}
+Since $q$ vanishes on the boundary, the second term also vanishes. As a result, the adjoint equations become
+\begin{align}
+\label{eq:example_adjoint1}
+&\nabla^2 z = q(\mathbf{x}) - f(\mathbf{x}) & \qquad & \text{on} \quad \Omega \\
+\label{eq:example_adjoint2}
+&z(\mathbf{x}) = 0 & \qquad & \text{on} \quad \partial \Omega.
+\end{align}
+The design equation is found using
+\begin{equation}
+\mathcal{L}_u(\delta u) = \gamma \int_\Omega u(\mathbf{x}) \delta u(\mathbf{x}) \, d\mathbf{x} + \int_\Omega z(\mathbf{x}) \delta u(\mathbf{x}) \, d\mathbf{x},
+\end{equation}
+which gives the gradient of the reduced cost functional as 
+\begin{equation}
+\label{eq:example_gradient}
+\frac{\partial \tilde{\mathcal{J}}}{\partial u} = u(\mathbf{x}) + z(\mathbf{x}).
+\end{equation}
+The adjoint equations~\eqref{eq:example_adjoint1}--\eqref{eq:example_adjoint2} and gradient of the reduced cost function~\eqref{eq:example_gradient} allow us to solve the original constrained problem~\eqref{eq:example1}--\eqref{eq:example3} using a gradient-based optimization method.

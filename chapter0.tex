@@ -5,26 +5,33 @@
 \maketitle
 
 \begin{abstract}
-
-Abstract goes here.
+Improved integration of wind farms into frequency regulation services is vital for increasing renewable energy production while maintaining power system stability. In particular, wind farms of the future will need to be able to provide secondary frequency regulation by tracking a power reference signal controlled by the grid operator. Wind farm wake models, estimation methods, and control techniques are developed to improve wind farm secondary frequency regulation capabilities. Large-eddy simulations (LES), where the large scales are directly simulated, are combined with the actuator disk model, which represents a wind turbine as a drag disk, to simulate large wind farms. LES provides an ideal test bed for wake model validation and control algorithm development. A dynamic wind farm model is developed for time-varying changes in wind farm thrust and validated against LES of a wind farm at start up. A new yawed wind turbine theory is derived for the near-disk inviscid region of the flow and compared to numerical simulations. This model yields more accurate predictions of the initial transverse velocity and wake skewness angle than existing models. We use these predictions as initial conditions in an extended dynamic wake model for yawed turbines and compare predicted wake deflection with wind tunnel experiments. Sensing and estimation methods are developed to assimilate power measurements into the new dynamic wake model. Using LES, the dynamic wake model, and sensing and estimation methods, we propose the use of model-based receding horizon control to provide secondary frequency regulation for a power grid using thrust coefficient modulation.  We implement the controller in high-fidelity numerical simulations of a wind farm with 84 turbines and then test the controlled farm's ability to track a power reference signal. The results demonstrate the ability of the control algorithm to track two types of power reference signals used by a US independent system operator. Furthermore, the controller achieves accurate power tracking and reduces loss of revenue in the bulk power market by requiring less setpoint reduction (derate) than the power level control range. The control design is subsequently extended to include generator torque, blade pitch actuation, and the rotational inertia of the rotor. 
 
 \vspace{1cm}
 
-\noindent Primary Reader: Some Person\\
-Secondary Reader: Someone Else
+\noindent Primary Readers and Advisors: Dennice Gayme and Charles Meneveau\\
+Secondary Reader: Enrique Mallada
 
 \end{abstract}
 
 \begin{acknowledgment}
 
-Thanks!
+I am forever indebted to the numerous people who supported me throughout my doctoral studies. First and foremost, I am grateful for the support of my advisors, Professors Dennice Gayme and Charles Meneveau, for their patience, kindness, and encouragement. Thank you to Professor Johan Meyers, for both his technical guidance as well as his generosity and hospitality during my visits to KU Leuven. I must also thank Professor Enrique Mallada for serving on my dissertation and GBO committees, Professors Ben Hobbs and Sauleh Siddiqui for serving on my GBO committee, and the many wonderful professors who made my education possible. This dissertation was also made possible by the financial support of the National Science Foundation through grants ECCS 1230788, OISE 1243482, and CMMI 1635430, as well as the computational resources of the Maryland Advanced Research Computing Center (MARCC).
+
+For the love and support of my parents, Donna and Martin, who taught me to care about what is right, I am eternally gratefully. To my sister, Anna, for her friendship, humor, and shared love of politics, food, and furry creatures. And of course, thank you to my partner, Zo\'{e}, whose love, intellect, and kindness never ceases to amaze me. To Quince for always being herself. To all of my friends and colleagues at Hopkins and KU Leuven --- Ismail, Tony, Juliaan, Joel, Dan, Michelle, Eshwan, Sean, Claire, Adrien, Perry, Ted, Vaughan, Richard, Michael, Di, Mike, Xiang, Wim, Thanos, Dries, Adam, Elina, Brent, Cindy, Robin, and Anna --- for their fun and enriching conversations. And to Baltimore for never ceasing to charm me along the way.
 
 \end{acknowledgment}
 
 \begin{dedication}
- 
-This thesis is dedicated to \ldots
-
+\topskip0pt
+\vfil
+{\it 
+%One possibility is just to tag along with the fantasists in government and industry who would have us believe that we can pursue our ideals of affluence, comfort, mobility, and leisure indefinitely. This curious faith is predicated on the notion that we will soon develop unlimited new sources of energy: domestic oil fields, shale oil, gasified coal, nuclear power, solar energy, and so on. This is fantastical because 
+\noindent [T]he basic cause of the energy crisis is not scarcity; it is moral ignorance and weakness of character.}~\cite{Berry1996a}
+\begin{flushright}
+--- Wendell Berry
+\end{flushright}
+\vfil
 \end{dedication}
 
 % generate table of contents
