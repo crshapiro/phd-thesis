@@ -1,0 +1,65 @@
+%% Creator: Inkscape inkscape 0.92.1, www.inkscape.org
+%% PDF/EPS/PS + LaTeX output extension by Johan Engelen, 2010
+%% Accompanies image file 'yawed-actuator-disk.pdf' (pdf, eps, ps)
+%%
+%% To include the image in your LaTeX document, write
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics{<filename>.pdf}
+%% To scale the image, write
+%%   \def\svgwidth{<desired width>}
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics[width=<desired width>]{<filename>.pdf}
+%%
+%% Images with a different path to the parent latex file can
+%% be accessed with the `import' package (which may need to be
+%% installed) using
+%%   \usepackage{import}
+%% in the preamble, and then including the image with
+%%   \import{<path to file>}{<filename>.pdf_tex}
+%% Alternatively, one can specify
+%%   \graphicspath{{<path to file>/}}
+%% 
+%% For more information, please see info/svg-inkscape on CTAN:
+%%   http://tug.ctan.org/tex-archive/info/svg-inkscape
+%%
+\begingroup%
+  \makeatletter%
+  \providecommand\color[2][]{%
+    \errmessage{(Inkscape) Color is used for the text in Inkscape, but the package 'color.sty' is not loaded}%
+    \renewcommand\color[2][]{}%
+  }%
+  \providecommand\transparent[1]{%
+    \errmessage{(Inkscape) Transparency is used (non-zero) for the text in Inkscape, but the package 'transparent.sty' is not loaded}%
+    \renewcommand\transparent[1]{}%
+  }%
+  \providecommand\rotatebox[2]{#2}%
+  \ifx\svgwidth\undefined%
+    \setlength{\unitlength}{144bp}%
+    \ifx\svgscale\undefined%
+      \relax%
+    \else%
+      \setlength{\unitlength}{\unitlength * \real{\svgscale}}%
+    \fi%
+  \else%
+    \setlength{\unitlength}{\svgwidth}%
+  \fi%
+  \global\let\svgwidth\undefined%
+  \global\let\svgscale\undefined%
+  \makeatother%
+  \begin{picture}(1,0.60000002)%
+    \put(0,0){\includegraphics[width=\unitlength,page=1]{yawed-actuator-disk.pdf}}%
+    \put(0.70517074,0.33928732){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$\mathbf{n}$}}}%
+    \put(0.00669123,0.23290299){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$\mathbf{U}_\infty$}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=2]{yawed-actuator-disk.pdf}}%
+    \put(0.71096405,0.21645121){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$\gamma$}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=3]{yawed-actuator-disk.pdf}}%
+    \put(0.78103007,0.12932099){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$x$}}}%
+    \put(0.53595629,0.42982475){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$y$}}}%
+    \put(0.39405036,0.41901533){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$y'$}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=4]{yawed-actuator-disk.pdf}}%
+    \put(0.34216481,0.08824498){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$2R$}}}%
+    \put(0.76812638,0.29224243){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$x'$}}}%
+  \end{picture}%
+\endgroup%
